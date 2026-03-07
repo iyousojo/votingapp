@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration - NACOS Elections</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Create Admin</h2>
+        <form id="registerForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium">Username</label>
+                <input type="text" id="username" class="w-full p-2 border rounded mt-1" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Password</label>
+                <input type="password" id="password" class="w-full p-2 border rounded mt-1" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-red-500">Admin Registration Secret</label>
+                <input type="password" id="adminSecret" class="w-full p-2 border border-red-200 rounded mt-1" placeholder="Secret Key from .env" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Register Admin</button>
+        </form>
+        <p class="mt-4 text-center text-sm">Already an admin? <a href="login.html" class="text-blue-500">Login here</a></p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                adminSecret: document.getElementById('adminSecret').value
+            };
+
+            const response = await fetch('http://localhost:3000/api/admin/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            alert(result.message || result.status);
+            if(response.ok) window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

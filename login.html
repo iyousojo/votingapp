@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - NACOS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root { --primary: #0a7d2c; --secondary: #f4f9f6; }
+        body { background: var(--secondary); font-family: Arial, sans-serif; }
+        .navbar-custom { background-color: #198754; }
+        .login-container { min-height: 90vh; display: flex; align-items: center; justify-content: center; }
+        .login-box { 
+            background: white; border-radius: 20px; padding: 40px 30px; 
+            width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            text-align: center; 
+        }
+        .login-box h2 { color: var(--primary); margin-bottom: 30px; font-weight: bold; }
+        .form-control { border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .btn-login { 
+            background: var(--primary); color: white; border-radius: 12px; 
+            padding: 12px 0; font-size: 18px; width: 100%; transition: 0.3s; border: none;
+        }
+        .btn-login:hover { background: #075a1d; }
+        .footer-text { margin-top: 20px; font-size: 14px; color: gray; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">NACOS | Computer Science</a>
+        </div>  
+    </nav>
+
+    <div class="login-container">
+        <div class="login-box">
+            <h2>Student Login</h2>
+            <!-- Form ID added, Action removed to fix 405 error -->
+            <form id="loginForm">
+                <input type="text" id="loginMatric" class="form-control" placeholder="Matriculation Number" required>
+                <input type="password" id="loginStudentId" class="form-control" placeholder="Student ID" required>
+                <button type="submit" class="btn btn-login">Login</button>
+            </form>
+            <p class="footer-text">Students Only | NACOS Election System</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.innerText = "Authenticating...";
+
+            const payload = {
+                matNumber: document.getElementById('loginMatric').value,
+                studentId: document.getElementById('loginStudentId').value
+            };
+
+            try {
+                const response = await fetch('https://voting-api-guwf.onrender.com/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    // Store user data
+                    localStorage.setItem('voterId', result.data.matNumber);
+                    localStorage.setItem('voterName', result.data.fullName);
+                    localStorage.setItem('hasVoted', result.data.hasVoted);
+                    // Redirect to dashboard
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert(result.message || "Invalid Login Credentials");
+                }
+            } catch (err) {
+                alert("Server error. Please try again in 30 seconds (Server might be waking up).");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Login";
+            }
+        });
+    </script>
+</body>
+</html>

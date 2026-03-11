@@ -36,7 +36,7 @@
                 adminSecret: document.getElementById('adminSecret').value
             };
 
-            const response = await fetch('http://localhost:3000/api/admin/register', {
+            const response = await fetch('https://voting-api-guwf.onrender.com/api/admin/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

@@ -5,26 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - NACOS Elections</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .loader { border-top-color: #ffffff; animation: spinner 0.8s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="bg-gray-900 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-96">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Admin Portal</h2>
-        <form id="loginForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" id="username" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-blue-500 outline-none" required>
+<body class="bg-slate-900 flex items-center justify-center h-screen px-4 overflow-hidden">
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-50 p-4 rounded-xl shadow-2xl text-white transform translate-x-full transition-all duration-300 hidden"></div>
+
+    <div class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-md border-b-4 border-blue-600 relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full opacity-50"></div>
+        
+        <div class="text-center mb-8 relative">
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3">
+                <i class="fas fa-shield-halved text-white text-2xl"></i>
             </div>
+            <h2 class="text-3xl font-black text-gray-800 tracking-tight">Welcome Back</h2>
+            <p class="text-gray-500 text-sm mt-1">Authorized Personnel Only</p>
+        </div>
+
+        <form id="loginForm" class="space-y-5 relative">
+            <!-- Username -->
             <div>
-                <label class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Username</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i class="fas fa-user-shield"></i>
+                    </span>
+                    <input type="text" id="username" placeholder="admin_username" 
+                        class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" required>
+                </div>
             </div>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded font-semibold hover:bg-blue-700 transition shadow-lg">Login</button>
+
+            <!-- Password -->
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    <input type="password" id="password" placeholder="••••••••" 
+                        class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" required>
+                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 transition">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember & Forgot -->
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-600 cursor-pointer">
+                    <input type="checkbox" class="rounded text-blue-600 mr-2 focus:ring-0"> Remember me
+                </label>
+                <a href="#" class="text-blue-600 font-semibold hover:underline">Forgot?</a>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 active:scale-95">
+                <span id="btnText">Enter Dashboard</span>
+                <div id="btnLoader" class="hidden loader w-5 h-5 border-2 border-transparent border-t-white rounded-full"></div>
+            </button>
         </form>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p class="text-sm text-gray-500">
+                New admin? <a href="register.html" class="text-blue-600 font-bold hover:underline">Create Account</a>
+            </p>
+        </div>
     </div>
 
     <script>
+        // Check if already logged in
+        window.onload = () => {
+            if (localStorage.getItem('adminToken')) {
+                showToast("Already logged in. Redirecting...", "success");
+                setTimeout(() => window.location.href = 'dashboard.html', 1500);
+            }
+        };
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} mr-2"></i> ${message}`;
+            toast.className = `fixed top-5 right-5 z-50 p-4 rounded-xl shadow-2xl text-white transition-all duration-300 transform translate-x-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3500);
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const btnLoader = document.getElementById('btnLoader');
+            const btnText = document.getElementById('btnText');
+
+            // Loading State
+            btn.disabled = true;
+            btnText.innerText = "Verifying...";
+            btnLoader.classList.remove('hidden');
+
             const data = {
                 username: document.getElementById('username').value,
                 password: document.getElementById('password').value
@@ -40,16 +138,21 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Save token for future API calls
                     localStorage.setItem('adminToken', result.token);
-                    alert('Login Successful!');
-                    window.location.href = 'dashboard.html'; // Redirect to your dashboard
+                    showToast('Access Granted! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 } else {
-                    alert('Login Failed: ' + result.message);
+                    showToast(result.message || 'Login Failed', 'error');
+                    // Reset UI
+                    btn.disabled = false;
+                    btnText.innerText = "Enter Dashboard";
+                    btnLoader.classList.add('hidden');
                 }
             } catch (err) {
-                console.error(err);
-                alert('Server Error. Is your API running?');
+                showToast('Network error. Check your connection.', 'error');
+                btn.disabled = false;
+                btnText.innerText = "Enter Dashboard";
+                btnLoader.classList.add('hidden');
             }
         });
     </script>
